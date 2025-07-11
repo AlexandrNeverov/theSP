@@ -1,0 +1,48 @@
+# macOS system files
+.DS_Store
+
+# VSCode settings
+.vscode/
+
+# Log files
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Ansible
+*.retry
+
+# Docker
+*.pid
+*.sock
+
+# Kubernetes
+.kube/
+
+# General IDE junk
+*.swp
+*.swo
+.idea/
+*.iml
+
+# OS metadata
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# AWS credentials (если случайно положишь)
+*.pem
+*.key
+.aws/
