@@ -6,8 +6,9 @@ set -e
 # CONFIGURATION
 # ----------------------------
 AWS_REGION="us-east-1"
-BUCKET_NAME="terraform-backend-zero-$(date +%s)"
-DYNAMODB_TABLE="terraform-locks-zero"
+TIMESTAMP=$(date +%s)
+BUCKET_NAME="terraform-backend-zero-${TIMESTAMP}"
+DYNAMODB_TABLE="terraform-locks-zero-${TIMESTAMP}"
 
 # ----------------------------
 # STEP 1: Update & install dependencies
