@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Exit immediately if any command fails
 set -e
 
+# Utility function to log status of each step
 log_step() {
   STEP="$1"
   if "$2"; then
@@ -12,6 +14,10 @@ log_step() {
   fi
 }
 
+# -------------------------------
+# STEP 0: Update and upgrade system packages
+# Ensures the latest security patches and updates are applied
+# -------------------------------
 echo "Step 0: System update & upgrade"
 if sudo apt-get update -y && sudo apt-get upgrade -y; then
   echo "Step 0 - done"
@@ -20,6 +26,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 1: Set system timezone to America/New_York
+# Standardizes logs and scheduling across deployments
+# -------------------------------
 echo "Step 1: Setting timezone to America/New_York"
 if sudo timedatectl set-timezone America/New_York; then
   timedatectl
@@ -29,6 +39,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 2: Install unzip utility
+# Required for handling ZIP archives (e.g. AWS CLI install)
+# -------------------------------
 echo "Step 2: Installing unzip"
 if sudo apt-get install -y unzip; then
   unzip -v
@@ -38,6 +52,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 3: Install tree utility
+# Visual representation of directory structure
+# -------------------------------
 echo "Step 3: Installing tree"
 if sudo apt-get install -y tree; then
   tree --version
@@ -47,6 +65,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 4: Install curl
+# Essential tool for interacting with HTTP APIs
+# -------------------------------
 echo "Step 4: Installing curl"
 if sudo apt-get install -y curl; then
   curl --version
@@ -56,6 +78,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 5: Install net-tools (netstat)
+# Helpful for checking port bindings and network diagnostics
+# -------------------------------
 echo "Step 5: Installing net-tools (netstat)"
 if sudo apt-get install -y net-tools; then
   netstat -V || echo "netstat ready (no version output)"
@@ -65,6 +91,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 6: Install Python 3 and pip
+# Required for DevOps scripting, CLI tools, and automation
+# -------------------------------
 echo "Step 6: Installing Python 3 and pip"
 if sudo apt-get install -y python3 python3-pip; then
   python3 --version
@@ -75,6 +105,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 7: Install AWS CLI (v2)
+# Enables programmatic access to AWS services via terminal
+# -------------------------------
 echo "Step 7: Installing AWS CLI"
 if curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip -o awscliv2.zip && sudo ./aws/install; then
   aws --version
@@ -84,6 +118,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 8: Install Git
+# Fundamental version control tool for managing infrastructure code
+# -------------------------------
 echo "Step 8: Installing Git"
 if sudo apt-get install -y git; then
   git --version
@@ -93,6 +131,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 9: Install jq
+# Lightweight tool for parsing and manipulating JSON (e.g. AWS CLI output)
+# -------------------------------
 echo "Step 9: Installing jq"
 if sudo apt-get install -y jq; then
   jq --version
@@ -102,6 +144,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 10: Install htop
+# Advanced system monitoring tool (interactive, better than top)
+# -------------------------------
 echo "Step 10: Installing htop"
 if sudo apt-get install -y htop; then
   htop --version
@@ -111,6 +157,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 11: Install tmux
+# Terminal multiplexer - essential for remote DevOps session management
+# -------------------------------
 echo "Step 11: Installing tmux"
 if sudo apt-get install -y tmux; then
   tmux -V
@@ -120,6 +170,10 @@ else
   exit 1
 fi
 
+# -------------------------------
+# STEP 12: Generate SSH key for secure access
+# Used for connecting to EC2 and other remote services
+# -------------------------------
 echo "Step 12: Generating SSH key (if not exists)"
 SSH_KEY_PATH="$HOME/.ssh/zero-node-key"
 if [[ -f "$SSH_KEY_PATH" ]]; then
@@ -133,9 +187,10 @@ else
   fi
 fi
 
-# ==========================
-# ✅ Summary of installed tools
-# ==========================
+# -------------------------------
+# FINAL: Summary of installed tools and versions
+# Ensures auditability, transparency, and reproducibility
+# -------------------------------
 echo ""
 echo "========= Installed Tools Summary ========="
 echo "Timezone: $(timedatectl | grep 'Time zone')"
