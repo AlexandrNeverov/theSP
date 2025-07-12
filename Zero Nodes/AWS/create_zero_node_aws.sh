@@ -65,6 +65,7 @@ aws ec2 create-tags \
   --tags Key=Name,Value=Terraform-Zero-Node \
   --region $REGION
 
+<<<<<<< HEAD
 # Wait until instance reaches 'running' state
 echo "Waiting for EC2 instance to reach 'running' state..."
 aws ec2 wait instance-running \
@@ -72,6 +73,12 @@ aws ec2 wait instance-running \
   --instance-ids "$INSTANCE_ID"
 
 # Retrieve the Public IP after instance is running
+=======
+# Wait for instance to initialize and fetch Public IP
+echo "Waiting for EC2 instance to initialize..."
+sleep 10
+
+>>>>>>> 8b752cb8316810c994b387edf421c141051294ed
 PUBLIC_IP=$(aws ec2 describe-instances \
   --region $REGION \
   --instance-ids "$INSTANCE_ID" \
@@ -79,4 +86,8 @@ PUBLIC_IP=$(aws ec2 describe-instances \
   --output text)
 
 echo "EC2 instance launched successfully: $INSTANCE_ID"
+<<<<<<< HEAD
 echo "Public IP address: $PUBLIC_IP"
+=======
+echo "Public IP address: $PUBLIC_IP"
+>>>>>>> 8b752cb8316810c994b387edf421c141051294ed
