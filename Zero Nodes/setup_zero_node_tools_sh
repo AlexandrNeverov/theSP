@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -e
+
+echo "🔁 Step 0: System update & upgrade"
+sudo apt-get update -y && sudo apt-get upgrade -y
+
+echo "🕒 Step 1: Setting timezone to America/New_York"
+sudo timedatectl set-timezone America/New_York
+timedatectl
+
+echo "📦 Step 2: Installing unzip"
+sudo apt-get install -y unzip
+unzip -v
+
+echo "🌳 Step 3: Installing tree"
+sudo apt-get install -y tree
+tree --version
+
+echo "🌐 Step 4: Installing curl"
+sudo apt-get install -y curl
+curl --version
+
+echo "📡 Step 5: Installing net-tools (netstat)"
+sudo apt-get install -y net-tools
+netstat -V || echo "✅ netstat ready (no version output)"
+
+echo "🐍 Step 6: Installing Python 3"
+sudo apt-get install -y python3 python3-pip
+python3 --version
+pip3 --version
+
+echo "🧰 Step 7: Installing AWS CLI"
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip -o awscliv2.zip
+sudo ./aws/install
+aws --version
+
+echo "🧠 Step 8: Installing Git"
+sudo apt-get install -y git
+git --version
+
+echo "🧮 Step 9: Installing jq"
+sudo apt-get install -y jq
+jq --version
+
+echo "📊 Step 10: Installing htop"
+sudo apt-get install -y htop
+htop --version
+
+echo "🖥 Step 11: Installing tmux"
+sudo apt-get install -y tmux
+tmux -V
+
+echo "✅ All base DevOps tools installed and verified."
