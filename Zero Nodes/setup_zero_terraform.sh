@@ -72,9 +72,27 @@ aws dynamodb create-table \
 # ----------------------------
 echo "[5/6] Waiting for DynamoDB table to become ACTIVE..."
 
+# Wait for table to exist
 aws dynamodb wait table-exists \
   --table-name "$DYNAMODB_TABLE" \
   --region "$AWS_REGION"
+
+# Poll until status becomes ACTIVE
+echo "Polling for table status = ACTIVE..."
+for i in {1..30}; do
+  STATUS=$(aws dynamodb describe-table \
+    --table-name "$DYNAMODB_TABLE" \
+    --region "$AWS_REGION" \
+    --query "Table.TableStatus" --output text)
+
+  if [[ "$STATUS" == "ACTIVE" ]]; then
+    echo "✅ Table status is ACTIVE"
+    break
+  fi
+
+  echo "⏳ Current status: $STATUS – waiting..."
+  sleep 2
+done
 
 # ----------------------------
 # STEP 6: Final Output
