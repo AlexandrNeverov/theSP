@@ -15,7 +15,6 @@ echo "Security Group: $SECURITY_GROUP_ID"
 echo "VPC: $VPC_ID"
 
 # Create IAM Role for EC2 if it doesn't already exist
-# Grants EC2 permission to interact with AWS APIs using metadata credentials
 aws iam create-role \
   --role-name $ROLE_NAME \
   --assume-role-policy-document '{
@@ -28,7 +27,6 @@ aws iam create-role \
   }' || echo "IAM role already exists"
 
 # Attach AdministratorAccess policy to the role
-# For demonstration purposes; in production, use scoped policies based on least privilege
 aws iam attach-role-policy \
   --role-name $ROLE_NAME \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess || echo "Policy already attached"
@@ -38,13 +36,12 @@ aws iam create-instance-profile \
   --instance-profile-name $INSTANCE_PROFILE_NAME || echo "Instance profile already exists"
 
 # Ensure the role is attached to the instance profile (1:1 relationship)
-sleep 5 # Wait for consistency in AWS IAM API before proceeding
+sleep 5
 aws iam add-role-to-instance-profile \
   --instance-profile-name $INSTANCE_PROFILE_NAME \
   --role-name $ROLE_NAME || echo "Role already added to instance profile"
 
-# Launch EC2 instance inside the specified subnet and VPC
-# Associates a public IP address for direct SSH access from the internet
+# Launch EC2 instance
 INSTANCE_ID=$(aws ec2 run-instances \
   --region $REGION \
   --image-id $AMI_ID \
@@ -57,16 +54,26 @@ INSTANCE_ID=$(aws ec2 run-instances \
   --query "Instances[0].InstanceId" \
   --output text)
 
-# Validate that instance was successfully launched
 if [[ -z "$INSTANCE_ID" || "$INSTANCE_ID" == "None" ]]; then
   echo "EC2 launch failed"
   exit 1
 fi
 
-# Add Name tag to the launched instance for easier identification
+# Add Name tag
 aws ec2 create-tags \
   --resources $INSTANCE_ID \
   --tags Key=Name,Value=Terraform-Zero-Node \
   --region $REGION
 
+# Wait for instance to initialize and fetch Public IP
+echo "Waiting for EC2 instance to initialize..."
+sleep 10
+
+PUBLIC_IP=$(aws ec2 describe-instances \
+  --region $REGION \
+  --instance-ids "$INSTANCE_ID" \
+  --query "Reservations[0].Instances[0].PublicIpAddress" \
+  --output text)
+
 echo "EC2 instance launched successfully: $INSTANCE_ID"
+echo "Public IP address: $PUBLIC_IP"
