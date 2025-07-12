@@ -132,11 +132,3 @@ else
     exit 1
   fi
 fi
-
-echo ""
-echo "Public SSH key:"
-cat "${SSH_KEY_PATH}.pub"
-echo "Private key saved to: $SSH_KEY_PATH"
-echo "To connect: ssh -i $SSH_KEY_PATH ubuntu@<public-ip>"
-echo ""
-echo "All setup steps completed successfully"
