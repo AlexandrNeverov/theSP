@@ -42,7 +42,7 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# AWS credentials (если случайно положишь)
+# AWS credentials
 *.pem
 *.key
 .aws/
