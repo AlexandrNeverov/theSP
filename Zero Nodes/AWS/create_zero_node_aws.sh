@@ -63,17 +63,18 @@ fi
 aws ec2 create-tags \
   --resources "$INSTANCE_ID" \
   --tags Key=Name,Value=Terraform-Zero-Node \
-  --region $REGION
+  --region "$REGION"
 
-# Wait until instance reaches 'running' state
+# Wait for EC2 instance to be ready
 echo "Waiting for EC2 instance to reach 'running' state..."
 aws ec2 wait instance-running \
-  --region $REGION \
+  --region "$REGION" \
   --instance-ids "$INSTANCE_ID"
 
-# Retrieve the Public IP after instance is running
+# Now fetch public IP
+echo "Fetching public IP for instance $INSTANCE_ID..."
 PUBLIC_IP=$(aws ec2 describe-instances \
-  --region $REGION \
+  --region "$REGION" \
   --instance-ids "$INSTANCE_ID" \
   --query "Reservations[0].Instances[0].PublicIpAddress" \
   --output text)
