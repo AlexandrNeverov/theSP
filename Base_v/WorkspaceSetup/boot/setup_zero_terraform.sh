@@ -10,7 +10,7 @@ TIMESTAMP=$(date +%s)
 BUCKET_NAME="terraform-backend-zero-${TIMESTAMP}"
 DYNAMODB_TABLE="terraform-locks-zero-${TIMESTAMP}"
 ROLE_NAME="TerraformRunnerRole"
-VAULT_TOKEN_FILE="/home/ubuntu/projects/hcl_vault_token"
+VAULT_TOKEN_FILE="/home/ubuntu/projects/.hcl_vault_token"
 
 # ----------------------------
 # STEP 1: Update & install dependencies (smart check)
@@ -89,7 +89,7 @@ aws dynamodb create-table \
   --region "$AWS_REGION"
 
 # ----------------------------
-# STEP 5: Wait for DynamoDB table to be active
+# STEP 5: Wait for DynamoDB table to become active
 # ----------------------------
 echo "[5/7] Waiting for DynamoDB table to become ACTIVE..."
 
@@ -120,15 +120,16 @@ echo "[6/7] Starting Vault in dev mode..."
 
 mkdir -p /home/ubuntu/projects
 
-# Launch Vault dev in background
-vault server -dev -dev-root-token-id=root &
-
-# Wait briefly to allow Vault to initialize
+# Launch Vault dev in background and log output
+vault server -dev > /tmp/vault-dev.log 2>&1 &
 sleep 3
+
+# Extract root token from log
+VAULT_TOKEN=$(grep 'Root Token:' /tmp/vault-dev.log | awk '{print $NF}')
 
 # Store root token
 echo "⚠️ This token file is for demonstration purposes only. Do NOT use this method in production." > "$VAULT_TOKEN_FILE"
-echo "root" >> "$VAULT_TOKEN_FILE"
+echo "$VAULT_TOKEN" >> "$VAULT_TOKEN_FILE"
 chmod 600 "$VAULT_TOKEN_FILE"
 
 echo "Vault root token stored in: $VAULT_TOKEN_FILE"
