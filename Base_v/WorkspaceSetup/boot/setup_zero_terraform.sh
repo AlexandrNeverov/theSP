@@ -10,11 +10,12 @@ TIMESTAMP=$(date +%s)
 BUCKET_NAME="terraform-backend-zero-${TIMESTAMP}"
 DYNAMODB_TABLE="terraform-locks-zero-${TIMESTAMP}"
 ROLE_NAME="TerraformRunnerRole"
+VAULT_TOKEN_FILE="/home/ubuntu/projects/hcl_vault_token"
 
 # ----------------------------
 # STEP 1: Update & install dependencies (smart check)
 # ----------------------------
-echo "[1/6] Installing Terraform and dependencies..."
+echo "[1/7] Installing Terraform and dependencies..."
 
 sudo apt-get update -y
 
@@ -43,15 +44,17 @@ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://
   sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 sudo apt-get update -y
-sudo apt-get install -y terraform
+sudo apt-get install -y terraform vault
 
 echo "Terraform version:"
 terraform -version
+echo "Vault version:"
+vault -version
 
 # ----------------------------
 # STEP 2: Create S3 bucket
 # ----------------------------
-echo "[2/6] Creating S3 bucket: $BUCKET_NAME..."
+echo "[2/7] Creating S3 bucket: $BUCKET_NAME..."
 
 if [[ "$AWS_REGION" == "us-east-1" ]]; then
   aws s3api create-bucket \
@@ -67,7 +70,7 @@ fi
 # ----------------------------
 # STEP 3: Enable versioning
 # ----------------------------
-echo "[3/6] Enabling versioning on bucket..."
+echo "[3/7] Enabling versioning on bucket..."
 
 aws s3api put-bucket-versioning \
   --bucket "$BUCKET_NAME" \
@@ -76,7 +79,7 @@ aws s3api put-bucket-versioning \
 # ----------------------------
 # STEP 4: Create DynamoDB table
 # ----------------------------
-echo "[4/6] Creating DynamoDB table: $DYNAMODB_TABLE..."
+echo "[4/7] Creating DynamoDB table: $DYNAMODB_TABLE..."
 
 aws dynamodb create-table \
   --table-name "$DYNAMODB_TABLE" \
@@ -88,7 +91,7 @@ aws dynamodb create-table \
 # ----------------------------
 # STEP 5: Wait for DynamoDB table to be active
 # ----------------------------
-echo "[5/6] Waiting for DynamoDB table to become ACTIVE..."
+echo "[5/7] Waiting for DynamoDB table to become ACTIVE..."
 
 aws dynamodb wait table-exists \
   --table-name "$DYNAMODB_TABLE" \
@@ -111,10 +114,31 @@ for i in {1..30}; do
 done
 
 # ----------------------------
-# STEP 6: Final Output
+# STEP 6: Start Vault in dev mode and store token
+# ----------------------------
+echo "[6/7] Starting Vault in dev mode..."
+
+mkdir -p /home/ubuntu/projects
+
+# Launch Vault dev in background
+vault server -dev -dev-root-token-id=root &
+
+# Wait briefly to allow Vault to initialize
+sleep 3
+
+# Store root token
+echo "⚠️ This token file is for demonstration purposes only. Do NOT use this method in production." > "$VAULT_TOKEN_FILE"
+echo "root" >> "$VAULT_TOKEN_FILE"
+chmod 600 "$VAULT_TOKEN_FILE"
+
+echo "Vault root token stored in: $VAULT_TOKEN_FILE"
+
+# ----------------------------
+# STEP 7: Final Output
 # ----------------------------
 echo ""
 echo "✅ Terraform installed"
+echo "✅ Vault installed and started in dev mode"
 echo "✅ S3 bucket created: $BUCKET_NAME"
 echo "✅ DynamoDB table created: $DYNAMODB_TABLE"
 echo ""
@@ -133,11 +157,3 @@ terraform {
 }
 EOF
 echo "---------------------------------------------"
-
-# ----------------------------
-# STEP 7: List IAM policies attached to TerraformRunnerRole
-# ----------------------------
-echo ""
-echo "[6/6] Listing IAM policies attached to role: $ROLE_NAME"
-aws iam list-attached-role-policies \
-  --role-name "$ROLE_NAME"
