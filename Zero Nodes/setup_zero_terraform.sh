@@ -11,13 +11,30 @@ BUCKET_NAME="terraform-backend-zero-${TIMESTAMP}"
 DYNAMODB_TABLE="terraform-locks-zero-${TIMESTAMP}"
 
 # ----------------------------
-# STEP 1: Update & install dependencies
+# STEP 1: Update & install dependencies (smart check)
 # ----------------------------
 echo "[1/6] Installing Terraform and dependencies..."
 
 sudo apt-get update -y
-sudo apt-get install -y unzip curl gnupg software-properties-common
 
+# Only install missing packages
+ESSENTIAL_PACKAGES=(unzip curl gnupg software-properties-common)
+TO_INSTALL=()
+
+for pkg in "${ESSENTIAL_PACKAGES[@]}"; do
+  if ! dpkg -s "$pkg" &>/dev/null; then
+    TO_INSTALL+=("$pkg")
+  fi
+done
+
+if [ ${#TO_INSTALL[@]} -gt 0 ]; then
+  echo "Installing: ${TO_INSTALL[*]}"
+  sudo apt-get install -y "${TO_INSTALL[@]}"
+else
+  echo "All essential packages already installed – skipping"
+fi
+
+# Add HashiCorp GPG key and repo
 curl -fsSL https://apt.releases.hashicorp.com/gpg | \
   sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 

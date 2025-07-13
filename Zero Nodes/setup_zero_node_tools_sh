@@ -40,6 +40,18 @@ else
 fi
 
 # -------------------------------
+# STEP 1.5: Ensure essential utilities installed
+# Required for further steps and Terraform setup
+# -------------------------------
+echo "Step 1.5: Installing required utilities (unzip curl gnupg software-properties-common)"
+if sudo apt-get install -y unzip curl gnupg software-properties-common; then
+  echo "Step 1.5 - done"
+else
+  echo "Step 1.5 - failed"
+  exit 1
+fi
+
+# -------------------------------
 # STEP 2: Install unzip utility
 # Required for handling ZIP archives (e.g. AWS CLI install)
 # -------------------------------
@@ -185,6 +197,18 @@ else
     echo "Step 12 - failed to generate SSH key"
     exit 1
   fi
+fi
+
+# -------------------------------
+# FINAL STEP: Create Terraform project directory
+# Ensures default location for pulling IaC projects
+# -------------------------------
+echo "Final Step: Creating ~/projects/terraform directory"
+if mkdir -p "$HOME/projects/terraform"; then
+  echo "Directory created at $HOME/projects/terraform"
+else
+  echo "Failed to create directory"
+  exit 1
 fi
 
 # -------------------------------
