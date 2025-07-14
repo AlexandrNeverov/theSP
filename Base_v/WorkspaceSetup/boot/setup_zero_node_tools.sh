@@ -3,7 +3,9 @@
 # Exit immediately if any command fails
 set -e
 
-# Utility function to log status of each step
+# -------------------------------
+# Utility function to log step status
+# -------------------------------
 log_step() {
   STEP="$1"
   if "$2"; then
@@ -26,7 +28,7 @@ else
 fi
 
 # -------------------------------
-# STEP 1: Set system timezone to America/New_York
+# STEP 1: Set system timezone
 # -------------------------------
 echo "Step 1: Setting timezone to America/New_York"
 if sudo timedatectl set-timezone America/New_York; then
@@ -85,7 +87,7 @@ else
 fi
 
 # -------------------------------
-# STEP 5: Install net-tools (netstat)
+# STEP 5: Install net-tools
 # -------------------------------
 echo "Step 5: Installing net-tools (netstat)"
 if sudo apt-get install -y net-tools; then
@@ -170,12 +172,10 @@ else
 fi
 
 # -------------------------------
-# STEP 12: Generate SSH key and copy to projects folder
+# STEP 12: Generate SSH key
 # -------------------------------
 echo "Step 12: Generating SSH key (if not exists)"
 SSH_KEY_PATH="$HOME/.ssh/zero-node-key"
-SSH_KEY_COPY="$HOME/projects/.ssh_terr_0_node"
-mkdir -p "$HOME/projects"
 if [[ -f "$SSH_KEY_PATH" ]]; then
   echo "SSH key already exists at $SSH_KEY_PATH - skipping"
 else
@@ -187,12 +187,8 @@ else
   fi
 fi
 
-# Copy private key to ~/projects/.ssh_terr_0_node
-cp "$SSH_KEY_PATH" "$SSH_KEY_COPY"
-chmod 600 "$SSH_KEY_COPY"
-echo "SSH key copied to $SSH_KEY_COPY"
-
-# STEP 13: Save public IP to $HOME/projects/publicip
+# -------------------------------
+# STEP 13: Save public IP to file
 # -------------------------------
 echo "Step 13: Saving public IP to $HOME/projects/publicip"
 PUBLIC_IP=$(curl -s ifconfig.me)
@@ -206,7 +202,18 @@ else
 fi
 
 # -------------------------------
-# FINAL: Summary of installed tools and versions
+# STEP 14: Create project directories
+# -------------------------------
+echo "Step 14: Creating ~/projects/terraform and ~/projects/ansible"
+if mkdir -p "$HOME/projects/terraform" && mkdir -p "$HOME/projects/ansible"; then
+  echo "Directories created"
+else
+  echo "Step 14 - failed"
+  exit 1
+fi
+
+# -------------------------------
+# FINAL: Summary of installed tools
 # -------------------------------
 echo ""
 echo "========= Installed Tools Summary ========="
@@ -222,6 +229,5 @@ echo "AWS CLI:  $(aws --version 2>&1)"
 echo "htop:     $(htop --version 2>&1)"
 echo "tmux:     $(tmux -V 2>&1)"
 echo "SSH key:  ${SSH_KEY_PATH} / ${SSH_KEY_PATH}.pub"
-echo "Copy to:  ${SSH_KEY_COPY}"
 echo "Public IP: $(cat "$PUBLIC_IP_FILE")  (saved to $PUBLIC_IP_FILE)"
 echo "==========================================="
