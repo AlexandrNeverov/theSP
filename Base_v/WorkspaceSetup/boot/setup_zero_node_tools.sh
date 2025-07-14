@@ -4,19 +4,6 @@
 set -e
 
 # -------------------------------
-# Utility function to log step status
-# -------------------------------
-log_step() {
-  STEP="$1"
-  if "$2"; then
-    echo "$STEP - done"
-  else
-    echo "$STEP - failed"
-    exit 1
-  fi
-}
-
-# -------------------------------
 # STEP 0: Update and upgrade system packages
 # -------------------------------
 echo "Step 0: System update & upgrade"
@@ -40,22 +27,10 @@ else
 fi
 
 # -------------------------------
-# STEP 1.5: Ensure essential utilities installed
+# STEP 2: Install essential utilities
 # -------------------------------
-echo "Step 1.5: Installing required utilities (unzip curl gnupg software-properties-common)"
+echo "Step 2: Installing required utilities (unzip, curl, gnupg, software-properties-common)"
 if sudo apt-get install -y unzip curl gnupg software-properties-common; then
-  echo "Step 1.5 - done"
-else
-  echo "Step 1.5 - failed"
-  exit 1
-fi
-
-# -------------------------------
-# STEP 2: Install unzip
-# -------------------------------
-echo "Step 2: Installing unzip"
-if sudo apt-get install -y unzip; then
-  unzip -v
   echo "Step 2 - done"
 else
   echo "Step 2 - failed"
@@ -63,11 +38,10 @@ else
 fi
 
 # -------------------------------
-# STEP 3: Install tree
+# STEP 3: Install other common tools
 # -------------------------------
-echo "Step 3: Installing tree"
-if sudo apt-get install -y tree; then
-  tree --version
+echo "Step 3: Installing tree, net-tools, python3, pip3, git, jq, htop, tmux"
+if sudo apt-get install -y tree net-tools python3 python3-pip git jq htop tmux; then
   echo "Step 3 - done"
 else
   echo "Step 3 - failed"
@@ -75,11 +49,11 @@ else
 fi
 
 # -------------------------------
-# STEP 4: Install curl
+# STEP 4: Install AWS CLI (v2)
 # -------------------------------
-echo "Step 4: Installing curl"
-if sudo apt-get install -y curl; then
-  curl --version
+echo "Step 4: Installing AWS CLI"
+if curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip -o awscliv2.zip && sudo ./aws/install; then
+  aws --version
   echo "Step 4 - done"
 else
   echo "Step 4 - failed"
@@ -87,11 +61,11 @@ else
 fi
 
 # -------------------------------
-# STEP 5: Install net-tools
+# STEP 5: Create project directories
 # -------------------------------
-echo "Step 5: Installing net-tools (netstat)"
-if sudo apt-get install -y net-tools; then
-  netstat -V || echo "netstat ready (no version output)"
+echo "Step 5: Creating ~/projects/terraform and ~/projects/ansible"
+PROJECTS_DIR="$HOME/projects"
+if mkdir -p "$PROJECTS_DIR/terraform" && mkdir -p "$PROJECTS_DIR/ansible"; then
   echo "Step 5 - done"
 else
   echo "Step 5 - failed"
@@ -99,12 +73,13 @@ else
 fi
 
 # -------------------------------
-# STEP 6: Install Python 3 and pip
+# STEP 6: Save public IP to ~/projects/publicip
 # -------------------------------
-echo "Step 6: Installing Python 3 and pip"
-if sudo apt-get install -y python3 python3-pip; then
-  python3 --version
-  pip3 --version
+echo "Step 6: Saving public IP to $PROJECTS_DIR/publicip"
+PUBLIC_IP=$(curl -s ifconfig.me)
+PUBLIC_IP_FILE="$PROJECTS_DIR/publicip"
+if echo "$PUBLIC_IP" > "$PUBLIC_IP_FILE"; then
+  echo "Public IP saved to $PUBLIC_IP_FILE: $PUBLIC_IP"
   echo "Step 6 - done"
 else
   echo "Step 6 - failed"
@@ -112,103 +87,29 @@ else
 fi
 
 # -------------------------------
-# STEP 7: Install AWS CLI (v2)
+# STEP 7: Generate SSH key
 # -------------------------------
-echo "Step 7: Installing AWS CLI"
-if curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip -o awscliv2.zip && sudo ./aws/install; then
-  aws --version
-  echo "Step 7 - done"
-else
-  echo "Step 7 - failed"
-  exit 1
-fi
-
-# -------------------------------
-# STEP 8: Install Git
-# -------------------------------
-echo "Step 8: Installing Git"
-if sudo apt-get install -y git; then
-  git --version
-  echo "Step 8 - done"
-else
-  echo "Step 8 - failed"
-  exit 1
-fi
-
-# -------------------------------
-# STEP 9: Install jq
-# -------------------------------
-echo "Step 9: Installing jq"
-if sudo apt-get install -y jq; then
-  jq --version
-  echo "Step 9 - done"
-else
-  echo "Step 9 - failed"
-  exit 1
-fi
-
-# -------------------------------
-# STEP 10: Install htop
-# -------------------------------
-echo "Step 10: Installing htop"
-if sudo apt-get install -y htop; then
-  htop --version
-  echo "Step 10 - done"
-else
-  echo "Step 10 - failed"
-  exit 1
-fi
-
-# -------------------------------
-# STEP 11: Install tmux
-# -------------------------------
-echo "Step 11: Installing tmux"
-if sudo apt-get install -y tmux; then
-  tmux -V
-  echo "Step 11 - done"
-else
-  echo "Step 11 - failed"
-  exit 1
-fi
-
-# -------------------------------
-# STEP 12: Generate SSH key
-# -------------------------------
-echo "Step 12: Generating SSH key (if not exists)"
+echo "Step 7: Generating SSH key (if not exists)"
 SSH_KEY_PATH="$HOME/.ssh/zero-node-key"
 if [[ -f "$SSH_KEY_PATH" ]]; then
   echo "SSH key already exists at $SSH_KEY_PATH - skipping"
 else
   if ssh-keygen -t rsa -b 4096 -f "$SSH_KEY_PATH" -N "" -C "zero-node-key"; then
-    echo "Step 12 - SSH key generated"
+    echo "Step 7 - SSH key generated"
   else
-    echo "Step 12 - failed to generate SSH key"
+    echo "Step 7 - failed to generate SSH key"
     exit 1
   fi
 fi
 
 # -------------------------------
-# STEP 13: Save public IP to file
+# STEP 8: Copy public SSH key to ~/projects/
 # -------------------------------
-echo "Step 13: Saving public IP to $HOME/projects/publicip"
-PUBLIC_IP=$(curl -s ifconfig.me)
-PUBLIC_IP_FILE="$HOME/projects/publicip"
-if echo "$PUBLIC_IP" > "$PUBLIC_IP_FILE"; then
-  echo "Public IP saved to $PUBLIC_IP_FILE: $PUBLIC_IP"
-  echo "Step 13 - done"
+echo "Step 8: Copying SSH public key to $PROJECTS_DIR/ssh.pub"
+if cp "$SSH_KEY_PATH.pub" "$PROJECTS_DIR/ssh.pub"; then
+  echo "Step 8 - done"
 else
-  echo "Step 13 - failed"
-  exit 1
-fi
-
-# -------------------------------
-# STEP 14: Create project directories
-# -------------------------------
-echo "Step 14: Creating ~/projects/terraform and ~/projects/ansible"
-if mkdir -p "$HOME/projects/terraform" && mkdir -p "$HOME/projects/ansible"; then
-  echo "Directories created"
-else
-  echo "Step 14 - failed"
+  echo "Step 8 - failed"
   exit 1
 fi
 
@@ -228,6 +129,7 @@ echo "JQ:       $(jq --version 2>&1)"
 echo "AWS CLI:  $(aws --version 2>&1)"
 echo "htop:     $(htop --version 2>&1)"
 echo "tmux:     $(tmux -V 2>&1)"
-echo "SSH key:  ${SSH_KEY_PATH} / ${SSH_KEY_PATH}.pub"
-echo "Public IP: $(cat "$PUBLIC_IP_FILE")  (saved to $PUBLIC_IP_FILE)"
+echo "SSH key:  ${SSH_KEY_PATH} / ${SSH_KEY_PATH}.pub (also copied to $PROJECTS_DIR/ssh.pub)"
+echo "Public IP: $PUBLIC_IP  (saved to $PUBLIC_IP_FILE)"
+echo "Projects dir: $PROJECTS_DIR (contains terraform/, ansible/)"
 echo "==========================================="
