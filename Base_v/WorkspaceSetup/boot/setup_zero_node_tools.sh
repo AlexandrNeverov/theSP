@@ -193,28 +193,29 @@ chmod 600 "$SSH_KEY_COPY"
 echo "SSH key copied to $SSH_KEY_COPY"
 
 # -------------------------------
-# STEP 13: Save public IP to $HOME/projects/.ssh_terr_0_node
+# STEP 13: Save public IP to $HOME/projects/public
 # -------------------------------
-echo "Step 13: Saving public IP to $HOME/projects/.ssh_terr_0_node"
+echo "Step 13: Saving public IP to $HOME/projects/publicip"
 PUBLIC_IP=$(curl -s ifconfig.me)
-if echo "$PUBLIC_IP" > "$HOME/projects/.ssh_terr_0_node"; then
-  echo "Public IP saved to $HOME/projects/.ssh_terr_0_node: $PUBLIC_IP"
+PUBLIC_IP_FILE="$HOME/projects/publicip"
+if echo "$PUBLIC_IP" > "$PUBLIC_IP_FILE"; then
+  echo "Public IP saved to $PUBLIC_IP_FILE: $PUBLIC_IP"
   echo "Step 13 - done"
 else
   echo "Step 13 - failed"
   exit 1
 fi
 
+# STEP 13: Save public IP to $HOME/projects/publicip
 # -------------------------------
-# FINAL STEP: Create Terraform and Ansible project directories
-# -------------------------------
-echo "Final Step: Creating ~/projects/{terraform,ansible} directories"
-if mkdir -p "$HOME/projects/terraform" && mkdir -p "$HOME/projects/ansible"; then
-  echo "Directories created:"
-  echo "  $HOME/projects/terraform"
-  echo "  $HOME/projects/ansible"
+echo "Step 13: Saving public IP to $HOME/projects/publicip"
+PUBLIC_IP=$(curl -s ifconfig.me)
+PUBLIC_IP_FILE="$HOME/projects/publicip"
+if echo "$PUBLIC_IP" > "$PUBLIC_IP_FILE"; then
+  echo "Public IP saved to $PUBLIC_IP_FILE: $PUBLIC_IP"
+  echo "Step 13 - done"
 else
-  echo "Failed to create one or more directories"
+  echo "Step 13 - failed"
   exit 1
 fi
 
@@ -236,4 +237,5 @@ echo "htop:     $(htop --version 2>&1)"
 echo "tmux:     $(tmux -V 2>&1)"
 echo "SSH key:  ${SSH_KEY_PATH} / ${SSH_KEY_PATH}.pub"
 echo "Copy to:  ${SSH_KEY_COPY}"
+echo "Public IP: $(cat "$PUBLIC_IP_FILE")  (saved to $PUBLIC_IP_FILE)"
 echo "==========================================="
