@@ -81,3 +81,8 @@ PUBLIC_IP=$(aws ec2 describe-instances \
 
 echo "EC2 instance launched successfully: $INSTANCE_ID"
 echo "Public IP address: $PUBLIC_IP"
+
+# Save public IP to ~/home/publicip
+mkdir -p "$HOME/home"
+echo "$PUBLIC_IP" > "$HOME/home/publicip"
+echo "Public IP saved to $HOME/home/publicip"
