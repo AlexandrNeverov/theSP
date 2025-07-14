@@ -3,7 +3,9 @@
 # Exit immediately if any command fails
 set -e
 
-# Utility function to log status of each step
+# -------------------------------
+# Utility function to log step status
+# -------------------------------
 log_step() {
   STEP="$1"
   if "$2"; then
@@ -16,7 +18,6 @@ log_step() {
 
 # -------------------------------
 # STEP 0: Update and upgrade system packages
-# Ensures the latest security patches and updates are applied
 # -------------------------------
 echo "Step 0: System update & upgrade"
 if sudo apt-get update -y && sudo apt-get upgrade -y; then
@@ -27,8 +28,7 @@ else
 fi
 
 # -------------------------------
-# STEP 1: Set system timezone to America/New_York
-# Standardizes logs and scheduling across deployments
+# STEP 1: Set system timezone
 # -------------------------------
 echo "Step 1: Setting timezone to America/New_York"
 if sudo timedatectl set-timezone America/New_York; then
@@ -41,7 +41,6 @@ fi
 
 # -------------------------------
 # STEP 1.5: Ensure essential utilities installed
-# Required for further steps and Terraform setup
 # -------------------------------
 echo "Step 1.5: Installing required utilities (unzip curl gnupg software-properties-common)"
 if sudo apt-get install -y unzip curl gnupg software-properties-common; then
@@ -52,8 +51,7 @@ else
 fi
 
 # -------------------------------
-# STEP 2: Install unzip utility
-# Required for handling ZIP archives (e.g. AWS CLI install)
+# STEP 2: Install unzip
 # -------------------------------
 echo "Step 2: Installing unzip"
 if sudo apt-get install -y unzip; then
@@ -65,8 +63,7 @@ else
 fi
 
 # -------------------------------
-# STEP 3: Install tree utility
-# Visual representation of directory structure
+# STEP 3: Install tree
 # -------------------------------
 echo "Step 3: Installing tree"
 if sudo apt-get install -y tree; then
@@ -79,7 +76,6 @@ fi
 
 # -------------------------------
 # STEP 4: Install curl
-# Essential tool for interacting with HTTP APIs
 # -------------------------------
 echo "Step 4: Installing curl"
 if sudo apt-get install -y curl; then
@@ -91,8 +87,7 @@ else
 fi
 
 # -------------------------------
-# STEP 5: Install net-tools (netstat)
-# Helpful for checking port bindings and network diagnostics
+# STEP 5: Install net-tools
 # -------------------------------
 echo "Step 5: Installing net-tools (netstat)"
 if sudo apt-get install -y net-tools; then
@@ -105,7 +100,6 @@ fi
 
 # -------------------------------
 # STEP 6: Install Python 3 and pip
-# Required for DevOps scripting, CLI tools, and automation
 # -------------------------------
 echo "Step 6: Installing Python 3 and pip"
 if sudo apt-get install -y python3 python3-pip; then
@@ -119,7 +113,6 @@ fi
 
 # -------------------------------
 # STEP 7: Install AWS CLI (v2)
-# Enables programmatic access to AWS services via terminal
 # -------------------------------
 echo "Step 7: Installing AWS CLI"
 if curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip -o awscliv2.zip && sudo ./aws/install; then
@@ -132,7 +125,6 @@ fi
 
 # -------------------------------
 # STEP 8: Install Git
-# Fundamental version control tool for managing infrastructure code
 # -------------------------------
 echo "Step 8: Installing Git"
 if sudo apt-get install -y git; then
@@ -145,7 +137,6 @@ fi
 
 # -------------------------------
 # STEP 9: Install jq
-# Lightweight tool for parsing and manipulating JSON (e.g. AWS CLI output)
 # -------------------------------
 echo "Step 9: Installing jq"
 if sudo apt-get install -y jq; then
@@ -158,7 +149,6 @@ fi
 
 # -------------------------------
 # STEP 10: Install htop
-# Advanced system monitoring tool (interactive, better than top)
 # -------------------------------
 echo "Step 10: Installing htop"
 if sudo apt-get install -y htop; then
@@ -171,7 +161,6 @@ fi
 
 # -------------------------------
 # STEP 11: Install tmux
-# Terminal multiplexer - essential for remote DevOps session management
 # -------------------------------
 echo "Step 11: Installing tmux"
 if sudo apt-get install -y tmux; then
@@ -183,8 +172,7 @@ else
 fi
 
 # -------------------------------
-# STEP 12: Generate SSH key for secure access
-# Used for connecting to EC2 and other remote services
+# STEP 12: Generate SSH key
 # -------------------------------
 echo "Step 12: Generating SSH key (if not exists)"
 SSH_KEY_PATH="$HOME/.ssh/zero-node-key"
@@ -200,20 +188,32 @@ else
 fi
 
 # -------------------------------
-# FINAL STEP: Create Terraform project directory
-# Ensures default location for pulling IaC projects
+# STEP 13: Save public IP to file
 # -------------------------------
-echo "Final Step: Creating ~/projects/terraform directory"
-if mkdir -p "$HOME/projects/terraform"; then
-  echo "Directory created at $HOME/projects/terraform"
+echo "Step 13: Saving public IP to $HOME/projects/publicip"
+PUBLIC_IP=$(curl -s ifconfig.me)
+PUBLIC_IP_FILE="$HOME/projects/publicip"
+if echo "$PUBLIC_IP" > "$PUBLIC_IP_FILE"; then
+  echo "Public IP saved to $PUBLIC_IP_FILE: $PUBLIC_IP"
+  echo "Step 13 - done"
 else
-  echo "Failed to create directory"
+  echo "Step 13 - failed"
   exit 1
 fi
 
 # -------------------------------
-# FINAL: Summary of installed tools and versions
-# Ensures auditability, transparency, and reproducibility
+# STEP 14: Create project directories
+# -------------------------------
+echo "Step 14: Creating ~/projects/terraform and ~/projects/ansible"
+if mkdir -p "$HOME/projects/terraform" && mkdir -p "$HOME/projects/ansible"; then
+  echo "Directories created"
+else
+  echo "Step 14 - failed"
+  exit 1
+fi
+
+# -------------------------------
+# FINAL: Summary of installed tools
 # -------------------------------
 echo ""
 echo "========= Installed Tools Summary ========="
@@ -229,4 +229,5 @@ echo "AWS CLI:  $(aws --version 2>&1)"
 echo "htop:     $(htop --version 2>&1)"
 echo "tmux:     $(tmux -V 2>&1)"
 echo "SSH key:  ${SSH_KEY_PATH} / ${SSH_KEY_PATH}.pub"
+echo "Public IP: $(cat "$PUBLIC_IP_FILE")  (saved to $PUBLIC_IP_FILE)"
 echo "==========================================="

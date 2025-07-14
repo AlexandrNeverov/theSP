@@ -192,20 +192,6 @@ cp "$SSH_KEY_PATH" "$SSH_KEY_COPY"
 chmod 600 "$SSH_KEY_COPY"
 echo "SSH key copied to $SSH_KEY_COPY"
 
-# -------------------------------
-# STEP 13: Save public IP to $HOME/projects/public
-# -------------------------------
-echo "Step 13: Saving public IP to $HOME/projects/publicip"
-PUBLIC_IP=$(curl -s ifconfig.me)
-PUBLIC_IP_FILE="$HOME/projects/publicip"
-if echo "$PUBLIC_IP" > "$PUBLIC_IP_FILE"; then
-  echo "Public IP saved to $PUBLIC_IP_FILE: $PUBLIC_IP"
-  echo "Step 13 - done"
-else
-  echo "Step 13 - failed"
-  exit 1
-fi
-
 # STEP 13: Save public IP to $HOME/projects/publicip
 # -------------------------------
 echo "Step 13: Saving public IP to $HOME/projects/publicip"
