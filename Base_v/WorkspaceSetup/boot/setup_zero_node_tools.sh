@@ -193,6 +193,19 @@ chmod 600 "$SSH_KEY_COPY"
 echo "SSH key copied to $SSH_KEY_COPY"
 
 # -------------------------------
+# STEP 13: Save public IP to $HOME/projects/.ssh_terr_0_node
+# -------------------------------
+echo "Step 13: Saving public IP to $HOME/projects/.ssh_terr_0_node"
+PUBLIC_IP=$(curl -s ifconfig.me)
+if echo "$PUBLIC_IP" > "$HOME/projects/.ssh_terr_0_node"; then
+  echo "Public IP saved to $HOME/projects/.ssh_terr_0_node: $PUBLIC_IP"
+  echo "Step 13 - done"
+else
+  echo "Step 13 - failed"
+  exit 1
+fi
+
+# -------------------------------
 # FINAL STEP: Create Terraform and Ansible project directories
 # -------------------------------
 echo "Final Step: Creating ~/projects/{terraform,ansible} directories"
