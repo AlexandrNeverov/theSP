@@ -83,5 +83,5 @@ echo "EC2 instance launched successfully: $INSTANCE_ID"
 echo "Public IP address: $PUBLIC_IP"
 
 # Save public IP to ~/home/publicip
-echo "$PUBLIC_IP" > "$HOME/publicip"
+echo "$PUBLIC_IP" > /home/ubuntu/publicip
 echo "Public IP saved to $HOME/home/publicip"
